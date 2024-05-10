@@ -1,4 +1,3 @@
-
 #include <AFMotor.h>
 #include <Servo.h>
 
@@ -12,7 +11,9 @@ const int acceleration = 5;  // Acceleration rate for smooth speed changes
 const int relay = 1;
 const int flamePin1 = 9;  // Digital pins for flame sensors
 const int flamePin2 = 11;
-//const int flamePin3 = 10;
+const int flamePin3 = 13;
+const int tempsensor = 'A0';
+float temperature;
 
 Servo myServo;      // Create a Servo object
 int servoPin = 10;  // Pin for servo motor
@@ -20,16 +21,16 @@ int servoPin = 10;  // Pin for servo motor
 void setup() {
   Serial.begin(9600);
 
-  //moveForward();
-  //delay(1000); // Add a delay if needed
-  //stop();
 
   pinMode(flamePin1, INPUT_PULLUP);  // Set flame sensor pins as inputs with internal pull-up resistors
   pinMode(flamePin2, INPUT_PULLUP);
-  pinMode(relay, OUTPUT);
-    //pinMode(flamePin3, INPUT_PULLUP);
+  pinMode(flamePin3, INPUT_PULLUP);
 
-    motor1.setSpeed(maxSpeed);
+  pinMode(relay, OUTPUT);
+
+  pinMode(tempsensor,INPUT);
+
+  motor1.setSpeed(maxSpeed);
   motor2.setSpeed(maxSpeed);
   motor3.setSpeed(maxSpeed);
   motor4.setSpeed(maxSpeed);
@@ -38,11 +39,7 @@ void setup() {
   motor3.run(RELEASE);
   motor4.run(RELEASE);
 
-  moveForward();
-  delay(1000);  // Add a delay if needed
-  stop();
-
-  myServo.attach(servoPin);  // Attach servo to pin 11
+  myServo.attach(servoPin);  // Attach servo to pin 10
   myServo.write(90);         // Set initial servo position to 90 degrees
 }
 
@@ -54,20 +51,23 @@ void loop() {
   } else {
     stop();
     delay(500);
-    digitalWrite(relay,LOW);
+    digitalWrite(relay,HIGH);
     delay(50);
     swiveServo();
     delay(3000);
-    digitalWrite(relay,HIGH);
+    digitalWrite(relay,LOW);
   }
 }
 
 bool flameDetected() {
-  // Check if any of the flame sensor pins are LOW (flame detected)
-  Serial.println(digitalRead(flamePin1));
-  Serial.println(digitalRead(flamePin2));
-  //Serial.println(digitalRead(flamePin3));
-  if (digitalRead(flamePin1) == LOW || digitalRead(flamePin2) == LOW /*|| digitalRead(flamePin3) == LOW*/) {
+  
+  temperature = analogRead(tempsensor);
+  Serial.print("temp: ");
+  Serial.print("\t");
+  Serial.print(temperature);
+  Serial.print("\n");
+
+  if ((digitalRead(flamePin1) == LOW || digitalRead(flamePin2) == LOW || digitalRead(flamePin3) == LOW) && (temperature >= 150)) {
     return true;  // Flame detected
   } else {
     return false;  // No flame detected
